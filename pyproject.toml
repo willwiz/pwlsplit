@@ -1,0 +1,17 @@
+[project]
+name = "pwlsplit"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib",
+    "scipy-stubs[scipy]",
+    "arraystubs@git+https://github.com/willwiz/arraystubs",
+    "pytools@git+https://github.com/willwiz/pytools",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.23,<0.9.0"]
+build-backend = "uv_build"
