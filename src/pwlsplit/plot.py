@@ -1,13 +1,16 @@
 # pyright: reportUnknownMemberType=false
-from pathlib import Path
-from typing import Unpack
+from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
 from matplotlib import pyplot as plt
 from pytools.plotting.api import create_figure, style_kwargs, update_figure_setting
-from pytools.plotting.trait import PlotKwargs
 
-from .struct import PreppedData, Segmentation
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from pytools.plotting.trait import PlotKwargs
+
+    from .struct import PreppedData, Segmentation
 
 
 def plot_prepped_data[F: np.floating](

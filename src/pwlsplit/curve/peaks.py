@@ -1,11 +1,15 @@
 import itertools
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1
 
 from pwlsplit.struct import Segment, Segmentation, TestProtocol
 from pwlsplit.trait import Curve, Point
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from arraystubs import Arr1
 
 
 def _estimate_peak(left: Segment, right: Segment) -> tuple[Point, float]:

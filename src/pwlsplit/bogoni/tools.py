@@ -1,4 +1,7 @@
-from pwlsplit.struct import SegmentDict, TestProtocol
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pwlsplit.struct import SegmentDict, TestProtocol
 
 
 def create_bogoni_curve(max_strain: float) -> TestProtocol:

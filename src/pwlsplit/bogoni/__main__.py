@@ -1,10 +1,10 @@
 import argparse
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from arraystubs import Arr2
 from pytools.logging.api import BLogger
 from scipy.ndimage import gaussian_filter1d
 
@@ -15,6 +15,9 @@ from pwlsplit.segment.split import adjust_segmentation
 from pwlsplit.struct import PreppedData, Segmentation
 
 from .tools import create_bogoni_curve
+
+if TYPE_CHECKING:
+    from arraystubs import Arr2
 
 parser = argparse.ArgumentParser(prog="pwlsplit")
 parser.add_argument("file", type=str, nargs="+", help="Path to the input file(s).")
@@ -42,6 +45,7 @@ def export_bogoni_data[F: np.floating, I: np.integer](
         "Time [s]": data[:, 0],
         "Stretch [-]": data[:, 1],
         "P [kPa]": data[:, 2],
+        "Weight [-]": 1.0 / data[:, 3],
     }
     df = pd.DataFrame.from_dict(dic)
     df.to_csv(fout, index=False)
@@ -51,7 +55,7 @@ def bogoni_process(file: Path, fout: str) -> None:
     folder = file.parent
     log = BLogger("INFO")
     raw = np.loadtxt(file, delimiter=",", skiprows=1, dtype=np.float64)
-    y = gaussian_filter1d(raw[:, 1], sigma=10)
+    y = gaussian_filter1d(raw[:, 1], sigma=20)
     dy = np.gradient(y)
     ddy = np.gradient(dy)
     data = PreppedData(n=len(raw), x=raw[:, 1], y=y, dy=dy / dy.max(), ddy=ddy / ddy.max())

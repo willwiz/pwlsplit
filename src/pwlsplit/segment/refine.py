@@ -1,9 +1,14 @@
 # Copyright (c) 2025 Will Zhang
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-from arraystubs import Arr1
-from pytools.logging.trait import NULL_LOG, ILogger
+from pytools.logging.api import NLOGGER
 from pytools.progress import ProgressBar
+
+if TYPE_CHECKING:
+    from arraystubs import Arr1
+    from pytools.logging.trait import ILogger
 
 __all__ = ["opt_index"]
 
@@ -49,7 +54,7 @@ def opt_index[F: np.floating, I: np.integer](
     window: int,
     *,
     max_iter: int = 100,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> Arr1[I]:
     old_index = index.copy()
     old_index[-1] = index[-1] - 1
