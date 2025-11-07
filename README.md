@@ -47,7 +47,7 @@ pip install .
 
 ## Example
 
-see pwlsplit/bogoni
+see pwlsplit/example
 
 ## License
 
