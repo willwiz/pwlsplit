@@ -57,7 +57,7 @@ def opt_index[F: np.floating, I: np.integer](
     log: ILogger = NLOGGER,
 ) -> Arr1[I]:
     old_index = index.copy()
-    old_index[-1] = index[-1] - 1
+    old_index[-1] = len(data) - 1
     for i in range(max_iter):
         new_index = optimize(data, old_index, window)
         diff = np.abs(new_index - old_index)
@@ -66,5 +66,5 @@ def opt_index[F: np.floating, I: np.integer](
             break
         old_index = new_index
         window = window - 1 if window > 1 else 1
-    old_index[-1] = old_index[-1] + 1
+    old_index[-1] = len(data)
     return old_index

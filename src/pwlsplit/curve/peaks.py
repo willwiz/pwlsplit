@@ -1,74 +1,85 @@
 import itertools
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
+from pytools.result import Err, Okay
 
-from pwlsplit.struct import FinalSegmentation, Segment, TestProtocol
-from pwlsplit.trait import Curve, Point
+from pwlsplit.trait import (
+    Curve,
+    Point,
+    Segment,
+    Segmentation,
+    SegmentDict,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
     from arraystubs import Arr1
 
 
-def _estimate_peak(left: Segment, right: Segment) -> tuple[Point, float]:
-    match (left, right):
-        case Segment(c=Curve.HOLD), Segment(c=Curve.STRETCH, t=t, d=d):
-            return (Point.PEAK, abs(d / t))
-        case Segment(c=Curve.HOLD), Segment(c=Curve.RECOVER, t=t, d=d):
-            return (Point.VALLEY, abs(d / t))
-        case Segment(c=Curve.STRETCH, t=t, d=d), Segment(c=Curve.HOLD):
-            return (Point.VALLEY, abs(d / t))
-        case Segment(c=Curve.RECOVER, t=t, d=d), Segment(c=Curve.HOLD):
-            return (Point.PEAK, abs(d / t))
-        case Segment(c=Curve.STRETCH, t=tl, d=dl), Segment(c=Curve.RECOVER, t=tr, d=dr):
-            return (Point.VALLEY, abs(dr / tr - dl / tl))
-        case Segment(c=Curve.RECOVER, t=tl, d=dl), Segment(c=Curve.STRETCH, t=tr, d=dr):
-            return (Point.PEAK, abs(dr / tr - dl / tl))
-        case Segment(c=Curve.HOLD), Segment(c=Curve.HOLD):
-            msg = "Consecutive 'Hold' segments found."
-            raise ValueError(msg)
-        case Segment(c=Curve.STRETCH), Segment(c=Curve.STRETCH):
-            msg = "Consecutive 'Stretch' segments found."
-            raise ValueError(msg)
-        case Segment(c=Curve.RECOVER), Segment(c=Curve.RECOVER):
-            msg = "Consecutive 'Recover' segments found."
-            raise ValueError(msg)
-        case _:
-            msg = f"Unreachable branch occured to pair: {left}, {right}. DEBUG needed."
-            raise ValueError(msg)
+_BREAKPOINT_MAPPING: Mapping[tuple[Curve, Curve], Literal[Point.PEAK, Point.VALLEY] | None] = {
+    (Curve.HOLD, Curve.STRETCH): Point.PEAK,
+    (Curve.HOLD, Curve.RECOVER): Point.VALLEY,
+    (Curve.STRETCH, Curve.HOLD): Point.VALLEY,
+    (Curve.STRETCH, Curve.RECOVER): Point.VALLEY,
+    (Curve.RECOVER, Curve.HOLD): Point.PEAK,
+    (Curve.RECOVER, Curve.STRETCH): Point.PEAK,
+    # Other combinations are invalid
+}
 
 
-def estimate_peaks(curves: Sequence[Segment]) -> tuple[Sequence[Point], Arr1[np.float64]]:
-    segments = [_estimate_peak(left, right) for left, right in itertools.pairwise(curves)]
+def _estimate_peak(left: Segment, right: Segment) -> Okay[tuple[Point, float]] | Err:
+    match _BREAKPOINT_MAPPING.get((left.c, right.c), None):
+        case None:
+            msg = f"Invalid segment pair: {left}, {right}."
+            return Err(ValueError(msg))
+        case Point.PEAK as p:
+            return Okay((p, abs(right.r) + abs(left.r)))
+        case Point.VALLEY as p:
+            return Okay((p, -abs(right.r) - abs(left.r)))
+
+
+def estimate_peaks(
+    curves: Sequence[Segment],
+) -> Okay[tuple[Sequence[Point], Arr1[np.float64]]] | Err:
+    results = [_estimate_peak(left, right) for left, right in itertools.pairwise(curves)]
+    errors = [res for res in results if isinstance(res, Err)]
+    if len(errors) > 0:
+        msg = f"{len(errors)} errors occurred during peak estimation."
+        for e in errors:
+            msg += f"\n - {e.val}"
+        return Err(ValueError(msg))
+    segments = [res.val for res in results if isinstance(res, Okay)]
     points = [Point.START, *[s[0] for s in segments], Point.END]
     peaks = np.array([s[1] for s in segments], dtype=np.float64)
     heights = np.array([0.0, *(peaks / peaks.max()), 0.0], dtype=np.float64)
-    return points, heights
+    return Okay((points, heights))
 
 
-def construct_segmentation(test: TestProtocol) -> FinalSegmentation[np.float64, np.intp]:
-    curves = [
-        Curve[s["curve"]] for p_vals in test.values() for c_vals in p_vals.values() for s in c_vals
+def construct_initial_segmentation(
+    data: Sequence[SegmentDict],
+) -> Okay[Segmentation[np.float64, np.intp]] | Err:
+    curves = [Curve[s["curve"]] for s in data]
+    duration = [s.get("duration", 1.0) for s in data]
+    if not all(d > 0.0 for d in duration):
+        msg = "All segment durations must be positive."
+        return Err(ValueError(msg))
+    rate = [
+        0 if c is Curve.HOLD else s.get("delta", 0.0) / t
+        for c, s, t in zip(curves, data, duration, strict=True)
     ]
-    segments = [
-        Segment(c=Curve(s["curve"]), t=s.get("duration", 0.0), d=s.get("delta", 0.0))
-        for p_vals in test.values()
-        for c_vals in p_vals.values()
-        for s in c_vals
-    ]
-    prot_map: dict[str, dict[str, list[int]]] = {p: {c: [] for c in test[p]} for p in test}
-    k = 0
-    for prot, vals in test.items():
-        for name, segs in vals.items():
-            prot_map[prot][name] = [k := k + 1 for _ in range(len(segs))]
-    points, peaks = estimate_peaks(segments)
-    return FinalSegmentation(
-        prot=prot_map,
-        n=len(points),
-        curves=curves,
-        points=points,
-        idx=np.zeros(len(points), dtype=np.intp),
-        peaks=peaks,
-    )
+    segments = [Segment(c=c, r=r) for c, r in zip(curves, rate, strict=True)]
+    match estimate_peaks(segments):
+        case Err(e):
+            return Err(e)
+        case Okay((points, peaks)):
+            return Okay(
+                Segmentation(
+                    n_point=len(points),
+                    curves=curves,
+                    points=points,
+                    idx=np.zeros(len(points), dtype=np.intp),
+                    peaks=peaks,
+                )
+            )

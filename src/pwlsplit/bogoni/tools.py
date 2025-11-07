@@ -1,10 +1,14 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pwlsplit.struct import SegmentDict, TestProtocol
+    from collections.abc import Mapping, Sequence
+
+    from pwlsplit.trait import SegmentDict
+
+    from ._trait import TestProtocol
 
 
-def create_bogoni_curve(max_strain: float) -> TestProtocol:
+def create_bogoni_protocol(max_strain: float) -> TestProtocol:
     loading: dict[str, list[SegmentDict]] = {
         "step_0": [
             {"curve": "STRETCH", "delta": max_strain / 3, "duration": 4.0},
@@ -39,3 +43,14 @@ def create_bogoni_curve(max_strain: float) -> TestProtocol:
             "step_0": [{"curve": "RECOVER", "delta": -max_strain, "duration": 12.0}],
         },
     }
+
+
+def construct_bogoni_curves(
+    protocol: TestProtocol,
+) -> tuple[Mapping[str, Mapping[str, Sequence[int]]], list[SegmentDict]]:
+    prot_map: dict[str, dict[str, list[int]]] = {p: {c: [] for c in v} for p, v in protocol.items()}
+    k = 0
+    for prot, vals in protocol.items():
+        for name, segs in vals.items():
+            prot_map[prot][name] = [k := k + 1 for _ in range(len(segs))]
+    return prot_map, [s for p_val in protocol.values() for c_vals in p_val.values() for s in c_vals]
