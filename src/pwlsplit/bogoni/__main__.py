@@ -12,7 +12,7 @@ from pwlsplit.curve.peaks import construct_segmentation
 from pwlsplit.plot import plot_prepped_data
 from pwlsplit.segment.refine import opt_index
 from pwlsplit.segment.split import adjust_segmentation
-from pwlsplit.struct import PreppedData, Segmentation
+from pwlsplit.struct import FinalSegmentation, PreppedData
 
 from .tools import create_bogoni_curve
 
@@ -25,7 +25,7 @@ parser.add_argument("--plot", action="store_true", help="Generate plots for the 
 
 
 def export_bogoni_data[F: np.floating, I: np.integer](
-    data: Arr2[F], segmentation: Segmentation[F, I], *, fout: Path
+    data: Arr2[F], segmentation: FinalSegmentation[F, I], *, fout: Path
 ) -> None:
     protocol = np.full_like(data[:, 0], "", dtype="<U16")
     cycle = np.full_like(data[:, 0], "", dtype="<U16")

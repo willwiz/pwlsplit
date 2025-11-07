@@ -1,11 +1,13 @@
 import dataclasses as dc
 from collections.abc import Mapping, Sequence
-from typing import Literal, Required, TypedDict
+from typing import TYPE_CHECKING, Literal, Required, TypedDict
 
 import numpy as np
-from arraystubs import Arr1
 
-from .trait import Curve, Point
+if TYPE_CHECKING:
+    from arraystubs import Arr1
+
+    from .trait import Curve, Point
 
 
 @dc.dataclass(slots=True)
@@ -32,7 +34,7 @@ type TestProtocol = Mapping[
 
 
 @dc.dataclass(slots=True)
-class Segmentation[F: np.floating, I: np.integer]:
+class FinalSegmentation[F: np.floating, I: np.integer]:
     prot: Mapping[str, Mapping[str, Sequence[int]]]
     n: int
     curves: Sequence[Curve]

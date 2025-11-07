@@ -10,11 +10,11 @@ from pwlsplit.trait import Point
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from pwlsplit.struct import PreppedData, Segmentation
+    from pwlsplit.struct import FinalSegmentation, PreppedData
 
 
 def _find_next_split_peakpoint[F: np.floating, I: np.integer](
-    data: PreppedData[F], sequence: Segmentation[F, I], i: int
+    data: PreppedData[F], sequence: FinalSegmentation[F, I], i: int
 ) -> Okay[int] | Err:
     section = data.ddy[sequence.idx[i - 1] :]
     peaks, _ = find_peaks(np.maximum(section, 0), prominence=0.2, height=0.1)
@@ -25,7 +25,7 @@ def _find_next_split_peakpoint[F: np.floating, I: np.integer](
 
 
 def _find_next_split_valleypoint[F: np.floating, I: np.integer](
-    data: PreppedData[F], sequence: Segmentation[F, I], i: int
+    data: PreppedData[F], sequence: FinalSegmentation[F, I], i: int
 ) -> Okay[int] | Err:
     section = data.ddy[sequence.idx[i - 1] :]
     valleys, _ = find_peaks(np.maximum(-section, 0), prominence=0.2, height=0.1)
@@ -36,7 +36,7 @@ def _find_next_split_valleypoint[F: np.floating, I: np.integer](
 
 
 def find_next_split_point[F: np.floating, I: np.integer](
-    data: PreppedData[F], sequence: Segmentation[F, I], i: int
+    data: PreppedData[F], sequence: FinalSegmentation[F, I], i: int
 ) -> Okay[int] | Err:
     # print("len:", len(data.ddy[sequence.idx[i - 1] :]))
     match sequence.points[i]:
@@ -51,8 +51,8 @@ def find_next_split_point[F: np.floating, I: np.integer](
 
 
 def adjust_segmentation[F: np.floating, I: np.integer](
-    data: PreppedData[F], segmentation: Segmentation[F, I], fout: Path | None = None
-) -> Segmentation[F, I]:
+    data: PreppedData[F], segmentation: FinalSegmentation[F, I], fout: Path | None = None
+) -> FinalSegmentation[F, I]:
     for prot, prot_vals in segmentation.prot.items():
         print(f"Adjusting protocol: {prot}")
         for test_vals in prot_vals.values():

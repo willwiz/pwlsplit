@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
     from pytools.plotting.trait import PlotKwargs
 
-    from .struct import PreppedData, Segmentation
+    from .struct import FinalSegmentation, PreppedData
 
 
 def plot_prepped_data[F: np.floating](
@@ -36,7 +36,7 @@ def plot_prepped_data[F: np.floating](
 
 def plot_segmentation_part[F: np.floating, I: np.integer](
     data: PreppedData[F],
-    segmentation: Segmentation[F, I],
+    segmentation: FinalSegmentation[F, I],
     part: str,
     fout: Path,
     **kwargs: Unpack[PlotKwargs],

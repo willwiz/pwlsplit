@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from pwlsplit.struct import Segment, Segmentation, TestProtocol
+from pwlsplit.struct import FinalSegmentation, Segment, TestProtocol
 from pwlsplit.trait import Curve, Point
 
 if TYPE_CHECKING:
@@ -48,7 +48,7 @@ def estimate_peaks(curves: Sequence[Segment]) -> tuple[Sequence[Point], Arr1[np.
     return points, heights
 
 
-def construct_segmentation(test: TestProtocol) -> Segmentation[np.float64, np.intp]:
+def construct_segmentation(test: TestProtocol) -> FinalSegmentation[np.float64, np.intp]:
     curves = [
         Curve[s["curve"]] for p_vals in test.values() for c_vals in p_vals.values() for s in c_vals
     ]
@@ -64,7 +64,7 @@ def construct_segmentation(test: TestProtocol) -> Segmentation[np.float64, np.in
         for name, segs in vals.items():
             prot_map[prot][name] = [k := k + 1 for _ in range(len(segs))]
     points, peaks = estimate_peaks(segments)
-    return Segmentation(
+    return FinalSegmentation(
         prot=prot_map,
         n=len(points),
         curves=curves,
