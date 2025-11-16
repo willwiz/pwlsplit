@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from pytools.logging.api import BLogger
-from pytools.result import Err, Okay
+from pytools.result import Err, Ok
 from scipy.ndimage import gaussian_filter1d
 
 from pwlsplit.curve.peaks import construct_initial_segmentation
@@ -42,16 +42,17 @@ def export_bogoni_data[F: np.floating, I: np.integer](
                 phase[segmentation.idx[v - 1] : segmentation.idx[v] + 1] = (
                     f"{k}_{segmentation.curves[v - 1]}"
                 )
-    dic = {
-        "Protocol": protocol,
-        "Cycle": cycle,
-        "Phase": phase,
-        "Time [s]": data[:, 0],
-        "Stretch [-]": data[:, 1],
-        "P [kPa]": data[:, 2],
-        "Weight [-]": 1.0 / data[:, 3],
-    }
-    df = pd.DataFrame.from_dict(dic)
+    df = pd.DataFrame.from_dict(
+        {
+            "Protocol": protocol,
+            "Cycle": cycle,
+            "Phase": phase,
+            "Time [s]": data[:, 0],
+            "Stretch [-]": data[:, 1],
+            "P [kPa]": data[:, 2],
+            "Weight [-]": 1.0 / data[:, 3],
+        }
+    )
     df.to_csv(fout, index=False)
 
 
@@ -66,7 +67,7 @@ def bogoni_process(file: Path, fout: str, *, log: ILogger) -> None:
     protocol = create_bogoni_protocol(0.3)
     prot_map, curves = construct_bogoni_curves(protocol)
     match construct_initial_segmentation(curves):
-        case Okay(segmentation):
+        case Ok(segmentation):
             log.debug("Initial segmentation constructed.")
         case Err(e):
             raise e
@@ -74,7 +75,7 @@ def bogoni_process(file: Path, fout: str, *, log: ILogger) -> None:
         log.info(f"Working on Protocol: {prot}")
         test_idx = sorted({v for cycle in prot_vals.values() for v in cycle})
         match adjust_segmentation(data, segmentation, test_idx):
-            case Okay(segmentation):
+            case Ok(segmentation):
                 log.debug(segmentation.idx)
                 fig_name = folder / f"{fout}_{prot}_segmentation.png"
                 plot_segmentation_part(data, segmentation, test_idx, fout=fig_name)

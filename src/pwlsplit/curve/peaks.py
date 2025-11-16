@@ -2,7 +2,7 @@ import itertools
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
-from pytools.result import Err, Okay
+from pytools.result import Err, Ok
 
 from pwlsplit.trait import (
     Curve,
@@ -29,20 +29,20 @@ _BREAKPOINT_MAPPING: Mapping[tuple[Curve, Curve], Literal[Point.PEAK, Point.VALL
 }
 
 
-def _estimate_peak(left: Segment, right: Segment) -> Okay[tuple[Point, float]] | Err:
+def _estimate_peak(left: Segment, right: Segment) -> Ok[tuple[Point, float]] | Err:
     match _BREAKPOINT_MAPPING.get((left.c, right.c), None):
         case None:
             msg = f"Invalid segment pair: {left}, {right}."
             return Err(ValueError(msg))
         case Point.PEAK as p:
-            return Okay((p, abs(right.r) + abs(left.r)))
+            return Ok((p, abs(right.r) + abs(left.r)))
         case Point.VALLEY as p:
-            return Okay((p, -abs(right.r) - abs(left.r)))
+            return Ok((p, -abs(right.r) - abs(left.r)))
 
 
 def estimate_peaks(
     curves: Sequence[Segment],
-) -> Okay[tuple[Sequence[Point], Arr1[np.float64]]] | Err:
+) -> Ok[tuple[Sequence[Point], Arr1[np.float64]]] | Err:
     results = [_estimate_peak(left, right) for left, right in itertools.pairwise(curves)]
     errors = [res for res in results if isinstance(res, Err)]
     if len(errors) > 0:
@@ -50,16 +50,16 @@ def estimate_peaks(
         for e in errors:
             msg += f"\n - {e.val}"
         return Err(ValueError(msg))
-    segments = [res.val for res in results if isinstance(res, Okay)]
+    segments = [res.val for res in results if isinstance(res, Ok)]
     points = [Point.START, *[s[0] for s in segments], Point.END]
     peaks = np.array([s[1] for s in segments], dtype=np.float64)
     heights = np.array([0.0, *(peaks / peaks.max()), 0.0], dtype=np.float64)
-    return Okay((points, heights))
+    return Ok((points, heights))
 
 
 def construct_initial_segmentation(
     data: Sequence[SegmentDict],
-) -> Okay[Segmentation[np.float64, np.intp]] | Err:
+) -> Ok[Segmentation[np.float64, np.intp]] | Err:
     curves = [Curve[s["curve"]] for s in data]
     duration = [s.get("duration", 1.0) for s in data]
     if not all(d > 0.0 for d in duration):
@@ -73,8 +73,8 @@ def construct_initial_segmentation(
     match estimate_peaks(segments):
         case Err(e):
             return Err(e)
-        case Okay((points, peaks)):
-            return Okay(
+        case Ok((points, peaks)):
+            return Ok(
                 Segmentation(
                     n_point=len(points),
                     curves=curves,
