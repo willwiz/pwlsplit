@@ -11,12 +11,12 @@ if TYPE_CHECKING:
 def create_bogoni_protocol(max_strain: float) -> TestProtocol:
     loading: dict[str, list[SegmentDict]] = {
         "step_0": [
-            {"curve": "STRETCH", "delta": max_strain / 3, "duration": 4.0},
+            {"curve": "STRETCH", "delta": max_strain / 3, "time": 4.0},
             {"curve": "HOLD"},
         ],
         **{
             f"step_{i}": [
-                {"curve": "STRETCH", "delta": max_strain / 3 / 4, "duration": 1.0},
+                {"curve": "STRETCH", "delta": max_strain / 3 / 4, "time": 1.0},
                 {"curve": "HOLD"},
             ]
             for i in range(1, 9)
@@ -25,13 +25,13 @@ def create_bogoni_protocol(max_strain: float) -> TestProtocol:
     unloading: dict[str, list[SegmentDict]] = {
         **{
             f"step_{i}": [
-                {"curve": "RECOVER", "delta": -max_strain / 3 / 4, "duration": 1.0},
+                {"curve": "RECOVER", "delta": -max_strain / 3 / 4, "time": 1.0},
                 {"curve": "HOLD"},
             ]
             for i in range(8)
         },
         "step_8": [
-            {"curve": "RECOVER", "delta": -max_strain / 3, "duration": 4.0},
+            {"curve": "RECOVER", "delta": -max_strain / 3, "time": 4.0},
             {"curve": "HOLD"},
         ],
     }
@@ -40,7 +40,7 @@ def create_bogoni_protocol(max_strain: float) -> TestProtocol:
         "Unloading": unloading,
         "Reloading": loading,
         "Reset": {
-            "step_0": [{"curve": "RECOVER", "delta": -max_strain, "duration": 12.0}],
+            "step_0": [{"curve": "RECOVER", "delta": -max_strain, "time": 12.0}],
         },
     }
 

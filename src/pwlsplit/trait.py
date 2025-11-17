@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class SegmentDict(TypedDict, total=False):
     curve: Required[Literal["STRETCH", "HOLD", "RECOVER"]]
     delta: float
-    duration: float
+    time: float
 
 
 class Curve(enum.StrEnum):
