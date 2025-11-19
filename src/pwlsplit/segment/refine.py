@@ -1,5 +1,6 @@
 # Copyright (c) 2025 Will Zhang
 
+from pprint import pformat
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -64,6 +65,7 @@ def opt_index[F: np.floating, I: np.integer](
         log.disp(f"Iteration {i}: {diff.sum()}")
         if np.array_equal(new_index, old_index):
             break
+        log.debug(pformat(new_index))
         old_index = new_index
         window = window - 1 if window > 1 else 1
     old_index[-1] = len(data)

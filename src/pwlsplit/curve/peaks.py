@@ -61,7 +61,7 @@ def construct_initial_segmentation(
     data: Sequence[SegmentDict],
 ) -> Ok[Segmentation[np.float64, np.intp]] | Err:
     curves = [Curve[s["curve"]] for s in data]
-    duration = [s.get("duration", 1.0) for s in data]
+    duration = [s.get("time", 1.0) for s in data]
     if not all(d > 0.0 for d in duration):
         msg = "All segment durations must be positive."
         return Err(ValueError(msg))

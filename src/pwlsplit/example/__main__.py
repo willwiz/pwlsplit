@@ -15,7 +15,7 @@ from pwlsplit.segment.refine import opt_index
 from pwlsplit.segment.split import adjust_segmentation
 from pwlsplit.trait import PreppedData, Segmentation
 
-from .tools import construct_bogoni_curves, create_bogoni_protocol
+from ._tools import construct_bogoni_curves, create_bogoni_protocol
 
 if TYPE_CHECKING:
     from arraystubs import Arr2

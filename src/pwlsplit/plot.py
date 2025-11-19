@@ -42,9 +42,9 @@ def plot_segmentation_part[F: np.floating, I: np.integer](
     fout: Path,
     **kwargs: Unpack[PlotKwargs],
 ) -> None:
-    defaults: PlotKwargs = {"figsize": (8, 2), "padleft": 0.05, "padbottom": 0.3, "linewidth": 0.75}
+    defaults: PlotKwargs = {"figsize": (8, 8), "padleft": 0.05, "padbottom": 0.3, "linewidth": 0.75}
     kwargs = defaults | kwargs
-    fig, ax = create_figure(**kwargs)
+    fig, ax = create_figure(nrows=4, **kwargs)
     update_figure_setting(fig, **kwargs)
     ax_style = style_kwargs(**kwargs)
     segments = [min(indices) - 1, *indices]
@@ -52,21 +52,50 @@ def plot_segmentation_part[F: np.floating, I: np.integer](
     end = (
         min(
             segmentation.idx[min(max(segments) + 1, segmentation.n_point - 1)],
-            segmentation.idx.max(),
+            data.n - 1,
         )
         + 1
     )
-    ax.plot(np.arange(start, end, dtype=int), data.x[start:end], "k-", label="Data", **ax_style)
-    ax.plot(
+    ax[0].plot(np.arange(start, end, dtype=int), data.x[start:end], "k-", label="Data", **ax_style)
+    ax[0].plot(
         segmentation.idx[segments],
         data.x[segmentation.idx[segments]],
         "ro",
         label="Splits",
         **ax_style,
     )
-    ax.set_ylabel("Segmentation")
-    ax.set_xlabel("Time")
-    ax.set_yticks([])
-    ax.legend(title="Test", bbox_to_anchor=(1.05, 1), loc="upper left")
+    ax[0].set_ylabel("Segmentation")
+    ax[0].set_xlabel("Time")
+    ax[0].set_yticks([])
+    local_peak_scaling = abs(segmentation.peaks[min(indices)])
+    ax[1].plot(
+        np.arange(start, end, dtype=int),
+        data.ddy[start:end] / local_peak_scaling,
+        "k-",
+        label="Data",
+        **ax_style,
+    )
+    ax[1].set_ylabel("Peaks")
+    ax[1].set_xlabel("Time")
+    ax[1].set_ylim(-1.1, 1.1)
+    ax[2].plot(
+        np.arange(start, end, dtype=int),
+        data.dy[start:end],
+        "k-",
+        label="Data",
+        **ax_style,
+    )
+    ax[2].set_ylabel("Gradients")
+    ax[2].set_xlabel("Time")
+    ax[3].plot(
+        np.arange(start, end, dtype=int),
+        data.y[start:end],
+        "k-",
+        label="Data",
+        **ax_style,
+    )
+    ax[3].set_ylabel("Data")
+    ax[3].set_xlabel("Time")
+    fig.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
     fig.savefig(fout)
     plt.close(fig)
