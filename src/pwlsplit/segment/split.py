@@ -52,15 +52,15 @@ def adjust_segmentation[F: np.floating, I: np.integer](
     indices: Sequence[int],
 ) -> Ok[Segmentation[F, I]] | Err:
     for k in indices:
-        if k > 0 and k <= segmentation.n_point:
-            match find_next_split_point(data, segmentation, k):
-                case Ok(i):
-                    # segmentation.idx[k:-1] = segmentation.idx[k:-1] + i
-                    segmentation.idx[k:] = np.linspace(
-                        segmentation.idx[k - 1] + i,
-                        data.n - 1,
-                        len(segmentation.idx[k:]),
-                    )
-                case Err(e):
-                    return Err(e)
+        if not (0 <= k <= segmentation.n_point):
+            continue
+        match find_next_split_point(data, segmentation, k):
+            case Ok(i):
+                segmentation.idx[k:] = np.linspace(
+                    segmentation.idx[k - 1] + i,
+                    data.n - 1,
+                    len(segmentation.idx[k:]),
+                )
+            case Err(e):
+                return Err(e)
     return Ok(segmentation)
