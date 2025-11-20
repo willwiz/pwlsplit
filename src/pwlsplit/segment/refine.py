@@ -37,11 +37,16 @@ def optimize_i[F: np.floating, I: np.integer](
     return pars[fit.argmin()]
 
 
+_MINIMUM_SIZE = 2
+
+
 def optimize[F: np.floating, I: np.integer](
     data: Arr1[F],
     index: Arr1[I],
     windows: int,
 ) -> Arr1[I]:
+    if index.size <= _MINIMUM_SIZE:
+        return index
     bart = ProgressBar(n=index.size - 2)
     for i in range(1, index.size - 1):
         index = optimize_i(data, index, i, windows)

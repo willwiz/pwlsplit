@@ -53,7 +53,7 @@ def estimate_peaks(
     segments = [res.val for res in results if isinstance(res, Ok)]
     points = [Point.START, *[s[0] for s in segments], Point.END]
     peaks = np.array([s[1] for s in segments], dtype=np.float64)
-    heights = np.array([1.0, *(peaks / peaks.max()), 1.0], dtype=np.float64)
+    heights = np.array([1.0, *(peaks / peaks.max(initial=1.0)), 1.0], dtype=np.float64)
     return Ok((points, heights))
 
 
