@@ -14,7 +14,7 @@ def _find_next_split_peakpoint[F: np.floating, I: np.integer](
     data: PreppedData[F], sequence: Segmentation[F, I], i: int
 ) -> Ok[int] | Err:
     section = data.ddy[sequence.idx[i - 1] :] / abs(sequence.peaks[i])
-    peaks, _ = find_peaks(np.maximum(section, 0), prominence=0.2, height=0.1)
+    peaks, _ = find_peaks(np.maximum(section, 0), prominence=0.25, height=0.25)
     if len(peaks) == 0:
         msg = "No peak point found."
         return Err(ValueError(msg))
@@ -25,7 +25,7 @@ def _find_next_split_valleypoint[F: np.floating, I: np.integer](
     data: PreppedData[F], sequence: Segmentation[F, I], i: int
 ) -> Ok[int] | Err:
     section = data.ddy[sequence.idx[i - 1] :] / abs(sequence.peaks[i])
-    valleys, _ = find_peaks(np.maximum(-section, 0), prominence=0.2, height=0.1)
+    valleys, _ = find_peaks(np.maximum(-section, 0), prominence=0.25, height=0.25)
     if len(valleys) == 0:
         msg = "No valley point found."
         return Err(ValueError(msg))
