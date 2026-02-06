@@ -4,7 +4,7 @@ from pprint import pformat
 from typing import TYPE_CHECKING
 
 import numpy as np
-from pytools.logging import NLOGGER, ILogger
+from pytools.logging import get_logger
 from pytools.progress import ProgressBar
 
 if TYPE_CHECKING:
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 __all__ = ["opt_index"]
 
 
-def interp_norm[F: np.floating, I: np.integer](
+def _interp_norm[F: np.floating, I: np.integer](
     data: A1[F],
     index: A1[I],
     skip: int = 25,
@@ -23,7 +23,7 @@ def interp_norm[F: np.floating, I: np.integer](
     return float(res @ res)
 
 
-def optimize_i[F: np.floating, I: np.integer](
+def _optimize_i[F: np.floating, I: np.integer](
     data: A1[F],
     index: A1[I],
     position: int,
@@ -32,11 +32,11 @@ def optimize_i[F: np.floating, I: np.integer](
     diff = np.zeros((2 * windows + 1, index.size), dtype=index.dtype)
     diff[:, position] = np.arange(-windows, windows + 1, dtype=index.dtype)
     pars = diff + index
-    fit = np.array([interp_norm(data, p) for p in pars])
+    fit = np.array([_interp_norm(data, p) for p in pars])
     return pars[fit.argmin()]
 
 
-_MINIMUM_SIZE = 2
+_MINIMUM_INDEX_SIZE = 3
 
 
 def optimize[F: np.floating, I: np.integer](
@@ -44,11 +44,11 @@ def optimize[F: np.floating, I: np.integer](
     index: A1[I],
     windows: int,
 ) -> A1[I]:
-    if index.size <= _MINIMUM_SIZE:
+    if index.size < _MINIMUM_INDEX_SIZE:
         return index
     bart = ProgressBar(n=index.size - 2)
     for i in range(1, index.size - 1):
-        index = optimize_i(data, index, i, windows)
+        index = _optimize_i(data, index, i, windows)
         bart.next()
     return index
 
@@ -59,8 +59,8 @@ def opt_index[F: np.floating, I: np.integer](
     window: int,
     *,
     max_iter: int = 100,
-    log: ILogger = NLOGGER,
 ) -> A1[I]:
+    log = get_logger()
     old_index = index.copy()
     old_index[-1] = len(data) - 1
     for i in range(max_iter):

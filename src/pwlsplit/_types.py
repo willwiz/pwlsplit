@@ -10,10 +10,32 @@ if TYPE_CHECKING:
     from pytools.arrays import A1
 
 
-class SegmentDict(TypedDict, total=False):
-    curve: Required[Literal["STRETCH", "HOLD", "RECOVER"]]
-    delta: float
-    time: float
+# class SegmentDict(TypedDict, total=False):
+#     curve: Required[Literal["STRETCH", "HOLD", "RECOVER"]]
+#     delta: float
+#     time: float
+
+
+class HoldDict(TypedDict, total=False):
+    curve: Required[Literal["HOLD"]]
+    duration: float
+
+
+class StretchDict(TypedDict, total=False):
+    curve: Required[Literal["STRETCH"]]
+    delta: Required[float]
+    duration: Required[float]
+
+
+class RecoverDict(TypedDict, total=False):
+    curve: Required[Literal["RECOVER"]]
+    delta: Required[float]
+    duration: Required[float]
+
+
+SegmentDict = StretchDict | HoldDict | RecoverDict
+
+CurveType = Literal["STRETCH", "HOLD", "RECOVER"]
 
 
 class Curve(enum.StrEnum):
@@ -30,9 +52,35 @@ class Point(enum.StrEnum):
 
 
 @dc.dataclass(slots=True)
-class Segment:
-    c: Curve
-    r: float
+class Hold:
+    duration: float
+
+    @property
+    def rate(self) -> float:
+        return 0.0
+
+
+@dc.dataclass(slots=True)
+class Stretch:
+    delta: float
+    duration: float
+
+    @property
+    def rate(self) -> float:
+        return abs(self.delta) / self.duration
+
+
+@dc.dataclass(slots=True)
+class Recover:
+    delta: float
+    duration: float
+
+    @property
+    def rate(self) -> float:
+        return -abs(self.delta) / self.duration
+
+
+SegmentType = Hold | Stretch | Recover
 
 
 @dc.dataclass(slots=True)

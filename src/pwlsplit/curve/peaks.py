@@ -4,13 +4,10 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 from pytools.result import Err, Ok
 
-from pwlsplit.types import (
-    Curve,
-    Point,
-    Segment,
-    Segmentation,
-    SegmentDict,
-)
+from pwlsplit.api import curve_type, parse_curves
+from pwlsplit.types import Curve, Point, Segmentation, SegmentDict, SegmentType
+
+from ._types import Segment
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -60,28 +57,24 @@ def estimate_peaks(
 
 
 def construct_initial_segmentation(
-    data: Sequence[SegmentDict],
+    data: Sequence[SegmentDict] | Sequence[SegmentType],
 ) -> Ok[Segmentation[np.float64, np.intp]] | Err:
-    curves = [Curve[s["curve"]] for s in data]
-    duration = [s.get("time", 1.0) for s in data]
-    if not all(d > 0.0 for d in duration):
-        msg = "All segment durations must be positive."
-        return Err(ValueError(msg))
-    rate = [
-        0 if c is Curve.HOLD else s.get("delta", 0.0) / t
-        for c, s, t in zip(curves, data, duration, strict=True)
-    ]
+    match parse_curves(data):
+        case Err(e):
+            return Err(e)
+        case Ok(data):
+            pass
+    curves = [curve_type(s) for s in data]
+    rate = [d.rate for d in data]
     segments = [Segment(c=c, r=r) for c, r in zip(curves, rate, strict=True)]
+    initial_index = np.arange(len(segments), dtype=np.intp)
     match estimate_peaks(segments):
         case Err(e):
             return Err(e)
         case Ok((points, peaks)):
-            return Ok(
-                Segmentation(
-                    n_point=len(points),
-                    curves=curves,
-                    points=points,
-                    idx=np.zeros(len(points), dtype=np.intp),
-                    peaks=peaks,
-                )
-            )
+            pass
+    return Ok(
+        Segmentation(
+            n_point=len(points), curves=curves, points=points, idx=initial_index, peaks=peaks
+        )
+    )

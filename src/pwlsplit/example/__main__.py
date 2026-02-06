@@ -5,22 +5,20 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from pytools.logging import BLogger, ILogger
+from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok
-from scipy.ndimage import gaussian_filter1d
 
-from pwlsplit.curve.peaks import construct_initial_segmentation
+from pwlsplit.api import adjust_segmentation, construct_initial_segmentation, opt_index, prep_data
 from pwlsplit.plot import plot_prepped_data, plot_segmentation_part
-from pwlsplit.segment.refine import opt_index
-from pwlsplit.segment.split import adjust_segmentation
-from pwlsplit.types import PreppedData, Segmentation
 
 from ._tools import construct_bogoni_curves, create_bogoni_protocol
 
 if TYPE_CHECKING:
     from pytools.arrays import A2
 
-    from ._trait import ProtocolMap
+    from pwlsplit.types import Segmentation
+
+    from ._trait import CurveIndex
 
 parser = argparse.ArgumentParser(prog="pwlsplit")
 parser.add_argument("file", type=str, nargs="+", help="Path to the input file(s).")
@@ -28,7 +26,7 @@ parser.add_argument("--plot", action="store_true", help="Generate plots for the 
 
 
 def export_bogoni_data[F: np.floating, I: np.integer](
-    data: A2[F], segmentation: Segmentation[F, I], prot_map: ProtocolMap, fout: Path
+    data: A2[F], segmentation: Segmentation[F, I], prot_map: CurveIndex, fout: Path
 ) -> None:
     protocol = np.full_like(data[:, 0], "", dtype="<U16")
     cycle = np.full_like(data[:, 0], "", dtype="<U16")
@@ -58,10 +56,8 @@ def export_bogoni_data[F: np.floating, I: np.integer](
 def bogoni_process(file: Path, fout: str, *, log: ILogger) -> None:
     folder = file.parent
     raw = np.loadtxt(file, delimiter=",", skiprows=1, dtype=np.float64)
-    y = gaussian_filter1d(raw[:, 1], sigma=20)
-    dy = np.gradient(y)
-    ddy = np.gradient(dy)
-    data = PreppedData(n=len(raw), x=raw[:, 1], y=y, dy=dy / dy.max(), ddy=ddy / ddy.max())
+
+    data = prep_data(raw[:, 1])
     plot_prepped_data(data, fout=(folder / f"{fout}_prepped.png"))
     protocol = create_bogoni_protocol(0.3)
     prot_map, curves = construct_bogoni_curves(protocol)
@@ -80,14 +76,14 @@ def bogoni_process(file: Path, fout: str, *, log: ILogger) -> None:
                 plot_segmentation_part(data, segmentation, test_idx, fout=fig_name)
             case Err(e):
                 raise e
-    segmentation.idx = opt_index(data.x, segmentation.idx, window=50, max_iter=100, log=log)
+    segmentation.idx = opt_index(data.x, segmentation.idx, window=50, max_iter=100)
     export_bogoni_data(raw, segmentation, prot_map, fout=(folder / f"{fout}.csv"))
 
 
 def main() -> None:
     args = parser.parse_args()
     files = [Path(v) for f in args.file for v in Path().glob(f)]
-    log = BLogger("INFO")
+    log = get_logger(level="INFO")
     for file in files:
         with file.open("r") as f:
             specimen = json.load(f)
