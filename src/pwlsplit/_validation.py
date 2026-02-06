@@ -3,7 +3,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, TypeIs
 
 if TYPE_CHECKING:
-    from ._trait import SegmentDict
+    from ._types import SegmentDict
 
 
 def is_segment_dict(obj: object) -> TypeIs[SegmentDict]:
