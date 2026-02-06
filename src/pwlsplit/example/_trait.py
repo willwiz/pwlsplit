@@ -1,6 +1,6 @@
 from collections.abc import Mapping, Sequence
 
-from pwlsplit.trait import SegmentDict
+from pwlsplit.types import SegmentDict
 
 # {protocol: {curve: {segment: [parameters]}}}
 TestProtocol = Mapping[

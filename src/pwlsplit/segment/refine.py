@@ -4,19 +4,18 @@ from pprint import pformat
 from typing import TYPE_CHECKING
 
 import numpy as np
-from pytools.logging.api import NLOGGER
+from pytools.logging import NLOGGER, ILogger
 from pytools.progress import ProgressBar
 
 if TYPE_CHECKING:
-    from arraystubs import Arr1
-    from pytools.logging.trait import ILogger
+    from pytools.arrays import A1
 
 __all__ = ["opt_index"]
 
 
 def interp_norm[F: np.floating, I: np.integer](
-    data: Arr1[F],
-    index: Arr1[I],
+    data: A1[F],
+    index: A1[I],
     skip: int = 25,
 ) -> float:
     y = np.interp(np.arange(0, len(data), skip), index, data[index])
@@ -25,11 +24,11 @@ def interp_norm[F: np.floating, I: np.integer](
 
 
 def optimize_i[F: np.floating, I: np.integer](
-    data: Arr1[F],
-    index: Arr1[I],
+    data: A1[F],
+    index: A1[I],
     position: int,
     windows: int,
-) -> Arr1[I]:
+) -> A1[I]:
     diff = np.zeros((2 * windows + 1, index.size), dtype=index.dtype)
     diff[:, position] = np.arange(-windows, windows + 1, dtype=index.dtype)
     pars = diff + index
@@ -41,10 +40,10 @@ _MINIMUM_SIZE = 2
 
 
 def optimize[F: np.floating, I: np.integer](
-    data: Arr1[F],
-    index: Arr1[I],
+    data: A1[F],
+    index: A1[I],
     windows: int,
-) -> Arr1[I]:
+) -> A1[I]:
     if index.size <= _MINIMUM_SIZE:
         return index
     bart = ProgressBar(n=index.size - 2)
@@ -55,13 +54,13 @@ def optimize[F: np.floating, I: np.integer](
 
 
 def opt_index[F: np.floating, I: np.integer](
-    data: Arr1[F],
-    index: Arr1[I],
+    data: A1[F],
+    index: A1[I],
     window: int,
     *,
     max_iter: int = 100,
     log: ILogger = NLOGGER,
-) -> Arr1[I]:
+) -> A1[I]:
     old_index = index.copy()
     old_index[-1] = len(data) - 1
     for i in range(max_iter):

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
     from pytools.plotting.trait import PlotKwargs
 
-    from .trait import PreppedData, Segmentation
+    from ._types import PreppedData, Segmentation
 
 
 def plot_prepped_data[F: np.floating](
@@ -56,7 +56,8 @@ def plot_segmentation_part[F: np.floating, I: np.integer](
         )
         + 1
     )
-    ax[0].plot(np.arange(start, end, dtype=int), data.x[start:end], "k-", label="Data", **ax_style)
+    steps = np.arange(start, end, dtype=np.intp)
+    ax[0].plot(steps, data.x[start:end], "k-", label="Data", **ax_style)
     ax[0].plot(
         segmentation.idx[segments],
         data.x[segmentation.idx[segments]],
@@ -69,7 +70,7 @@ def plot_segmentation_part[F: np.floating, I: np.integer](
     ax[0].set_yticks([])
     local_peak_scaling = abs(segmentation.peaks[min(indices)])
     ax[1].plot(
-        np.arange(start, end, dtype=int),
+        steps,
         data.ddy[start:end] / local_peak_scaling,
         "k-",
         label="Data",
@@ -79,7 +80,7 @@ def plot_segmentation_part[F: np.floating, I: np.integer](
     ax[1].set_xlabel("Time")
     ax[1].set_ylim(-1.1, 1.1)
     ax[2].plot(
-        np.arange(start, end, dtype=int),
+        steps,
         data.dy[start:end],
         "k-",
         label="Data",
@@ -88,7 +89,7 @@ def plot_segmentation_part[F: np.floating, I: np.integer](
     ax[2].set_ylabel("Gradients")
     ax[2].set_xlabel("Time")
     ax[3].plot(
-        np.arange(start, end, dtype=int),
+        steps,
         data.y[start:end],
         "k-",
         label="Data",

@@ -4,7 +4,7 @@ import numpy as np
 from pytools.result import Err, Ok
 from scipy.signal import find_peaks
 
-from pwlsplit.trait import Point, PreppedData, Segmentation
+from pwlsplit.types import Point, PreppedData, Segmentation
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

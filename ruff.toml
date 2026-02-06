@@ -1,0 +1,33 @@
+target-version = "py314"
+line-length = 100
+indent-width = 4
+exclude = [".venv", "**/build"]
+preview = false
+[lint]
+preview = false
+select = ["ALL"]
+ignore = [
+    "T201",
+    "T203",    #COM812: Adds trailing comma to array expressions, resulting in bad autoformatting
+    "COM812",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "G004",
+    "G010",
+    "ERA001",
+    "TRY401",
+    "PLE1205",
+    "S607",
+    "S603",
+]
+fixable = ["ALL"]
+unfixable = []
+[format]
+quote-style = "double"
+indent-style = "space"

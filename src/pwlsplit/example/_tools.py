@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from pwlsplit.trait import SegmentDict
+    from pwlsplit.types import SegmentDict
 
     from ._trait import TestProtocol
 

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from pytools.logging.api import BLogger
+from pytools.logging import BLogger, ILogger
 from pytools.result import Err, Ok
 from scipy.ndimage import gaussian_filter1d
 
@@ -13,13 +13,12 @@ from pwlsplit.curve.peaks import construct_initial_segmentation
 from pwlsplit.plot import plot_prepped_data, plot_segmentation_part
 from pwlsplit.segment.refine import opt_index
 from pwlsplit.segment.split import adjust_segmentation
-from pwlsplit.trait import PreppedData, Segmentation
+from pwlsplit.types import PreppedData, Segmentation
 
 from ._tools import construct_bogoni_curves, create_bogoni_protocol
 
 if TYPE_CHECKING:
-    from arraystubs import Arr2
-    from pytools.logging.trait import ILogger
+    from pytools.arrays import A2
 
     from ._trait import ProtocolMap
 
@@ -29,7 +28,7 @@ parser.add_argument("--plot", action="store_true", help="Generate plots for the 
 
 
 def export_bogoni_data[F: np.floating, I: np.integer](
-    data: Arr2[F], segmentation: Segmentation[F, I], prot_map: ProtocolMap, fout: Path
+    data: A2[F], segmentation: Segmentation[F, I], prot_map: ProtocolMap, fout: Path
 ) -> None:
     protocol = np.full_like(data[:, 0], "", dtype="<U16")
     cycle = np.full_like(data[:, 0], "", dtype="<U16")

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 from pytools.result import Err, Ok
 
-from pwlsplit.trait import (
+from pwlsplit.types import (
     Curve,
     Point,
     Segment,
@@ -15,7 +15,7 @@ from pwlsplit.trait import (
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from arraystubs import Arr1
+    from pytools.arrays import A1
 
 
 _BREAKPOINT_MAPPING: Mapping[tuple[Curve, Curve], Literal[Point.PEAK, Point.VALLEY] | None] = {
@@ -42,7 +42,7 @@ def _estimate_peak(left: Segment, right: Segment) -> Ok[tuple[Point, float]] | E
 
 def estimate_peaks(
     curves: Sequence[Segment],
-) -> Ok[tuple[Sequence[Point], Arr1[np.float64]]] | Err:
+) -> Ok[tuple[Sequence[Point], A1[np.float64]]] | Err:
     results = [_estimate_peak(left, right) for left, right in itertools.pairwise(curves)]
     errors = [res for res in results if isinstance(res, Err)]
     if len(errors) > 0:

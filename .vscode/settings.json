@@ -1,0 +1,31 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true
+    },
+    "python.analysis.typeCheckingMode": "strict",
+    "python.analysis.importFormat": "absolute",
+    "python.analysis.autoFormatStrings": true,
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.completeFunctionParens": true,
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingTypeStubs": "none",
+    },
+    "python.analysis.enablePytestSupport": false,
+    "python.analysis.include": [
+        "${workspaceFolder}/chearttest"
+    ],
+    "python.analysis.exclude": [
+        "**/build",
+        "${workspaceFolder}.venv",
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/petsc",
+        "${workspaceFolder}/libspatialindex",
+        "${workspaceFolder}/libsupermesh",
+    ],
+    "search.exclude": {
+        "**/*.D": true,
+        "**/*.vtu": true,
+        "**/*.log": true,
+    },
+}
